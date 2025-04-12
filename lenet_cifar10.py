@@ -6,16 +6,30 @@ import torchvision
 import torchvision.transforms as transforms
 import time
 import platform
+import os
+import sys
+from contextlib import contextmanager
+
 
 # Transform for CIFAR-10 (normalize RGB channels)
 transform = transforms.Compose([
     transforms.ToTensor(),
     transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
 ])
-
+@contextmanager
+def suppress_stdout():
+    with open(os.devnull, 'w') as devnull:
+        old_stdout = sys.stdout
+        sys.stdout = devnull
+        try:
+            yield
+        finally:
+            sys.stdout = old_stdout
 # CIFAR-10 dataset loading
-trainset = torchvision.datasets.CIFAR10(root='./data', train=True, download=True, transform=transform)
-testset = torchvision.datasets.CIFAR10(root='./data', train=False, download=True, transform=transform)
+with suppress_stdout():
+    trainset = torchvision.datasets.CIFAR10(root='./data', train=True, download=True, transform=transform)
+    testset = torchvision.datasets.CIFAR10(root='./data', train=False, download=True, transform=transform)
+
 
 trainloader = torch.utils.data.DataLoader(trainset, batch_size=64, shuffle=True, num_workers=2)
 testloader = torch.utils.data.DataLoader(testset, batch_size=1000, shuffle=False, num_workers=2)
@@ -76,6 +90,7 @@ def train_and_evaluate(model, trainloader, testloader, device):
     print(f"\nTest Accuracy: {accuracy:.2f}%")
     print(f"Training Time: {train_time:.2f} seconds")
     return accuracy, train_time
+
 
 # Run
 if __name__ == "__main__":
