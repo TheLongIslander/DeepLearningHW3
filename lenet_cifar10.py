@@ -62,7 +62,7 @@ def train_and_evaluate(model, trainloader, testloader, device):
 
     start_time = time.time()
     model.train()
-    for epoch in range(10):
+    for epoch in range(20):
         running_loss = 0.0
         for inputs, labels in trainloader:
             inputs, labels = inputs.to(device), labels.to(device)

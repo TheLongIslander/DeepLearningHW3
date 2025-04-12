@@ -34,18 +34,18 @@ with suppress_stdout():
 trainloader = torch.utils.data.DataLoader(trainset, batch_size=64, shuffle=True, num_workers=2)
 testloader = torch.utils.data.DataLoader(testset, batch_size=1000, shuffle=False, num_workers=2)
 
-# LeNet-5 with Dropout
+# LeNet-5 with reduced Dropout
 class LeNet5Dropout(nn.Module):
     def __init__(self):
         super(LeNet5Dropout, self).__init__()
         self.conv1 = nn.Conv2d(3, 6, kernel_size=5)
         self.pool = nn.AvgPool2d(2, 2)
         self.conv2 = nn.Conv2d(6, 16, kernel_size=5)
-        self.dropout_conv = nn.Dropout(p=0.25)
+        self.dropout_conv = nn.Dropout(p=0.1)       # ↓ reduced
         self.fc1 = nn.Linear(16 * 5 * 5, 120)
-        self.dropout_fc1 = nn.Dropout(p=0.5)
+        self.dropout_fc1 = nn.Dropout(p=0.3)        # ↓ reduced
         self.fc2 = nn.Linear(120, 84)
-        self.dropout_fc2 = nn.Dropout(p=0.5)
+        self.dropout_fc2 = nn.Dropout(p=0.3)        # ↓ reduced
         self.fc3 = nn.Linear(84, 10)
 
     def forward(self, x):
@@ -66,7 +66,7 @@ def train_and_evaluate(model, trainloader, testloader, device):
 
     start_time = time.time()
     model.train()
-    for epoch in range(10):
+    for epoch in range(20):
         running_loss = 0.0
         for inputs, labels in trainloader:
             inputs, labels = inputs.to(device), labels.to(device)
