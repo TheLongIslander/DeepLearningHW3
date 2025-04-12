@@ -34,23 +34,23 @@ with suppress_stdout():
 trainloader = torch.utils.data.DataLoader(trainset, batch_size=64, shuffle=True, num_workers=2)
 testloader = torch.utils.data.DataLoader(testset, batch_size=1000, shuffle=False, num_workers=2)
 
-# LeNet-5 with one Dropout layer
-class LeNet5Dropout(nn.Module):
+# LeNet-5 with one BatchNorm layer
+class LeNet5BatchNorm(nn.Module):
     def __init__(self):
-        super(LeNet5Dropout, self).__init__()
+        super(LeNet5BatchNorm, self).__init__()
         self.conv1 = nn.Conv2d(3, 6, kernel_size=5)
+        self.bn1 = nn.BatchNorm2d(6)
         self.pool = nn.AvgPool2d(2, 2)
         self.conv2 = nn.Conv2d(6, 16, kernel_size=5)
         self.fc1 = nn.Linear(16 * 5 * 5, 120)
-        self.dropout = nn.Dropout(p=0.3)
         self.fc2 = nn.Linear(120, 84)
         self.fc3 = nn.Linear(84, 10)
 
     def forward(self, x):
-        x = self.pool(F.relu(self.conv1(x)))
-        x = self.pool(F.relu(self.conv2(x)))
+        x = self.pool(F.relu(self.bn1(self.conv1(x))))
+        x = self.pool(F.relu(self.conv2(x)))            
         x = x.view(-1, 16 * 5 * 5)
-        x = self.dropout(F.relu(self.fc1(x)))
+        x = F.relu(self.fc1(x))
         x = F.relu(self.fc2(x))
         return self.fc3(x)
 
@@ -103,5 +103,5 @@ if __name__ == "__main__":
         device = torch.device("cpu")
 
     print(f"Using device: {device}")
-    model = LeNet5Dropout()
+    model = LeNet5BatchNorm()
     train_and_evaluate(model, trainloader, testloader, device)

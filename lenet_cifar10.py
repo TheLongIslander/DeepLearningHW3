@@ -38,9 +38,9 @@ testloader = torch.utils.data.DataLoader(testset, batch_size=1000, shuffle=False
 class LeNet5(nn.Module):
     def __init__(self):
         super(LeNet5, self).__init__()
-        self.conv1 = nn.Conv2d(3, 6, kernel_size=5)      # (3, 32, 32) -> (6, 28, 28)
-        self.pool = nn.AvgPool2d(2, 2)                   # (6, 28, 28) -> (6, 14, 14)
-        self.conv2 = nn.Conv2d(6, 16, kernel_size=5)     # (6, 14, 14) -> (16, 10, 10) -> pool -> (16, 5, 5)
+        self.conv1 = nn.Conv2d(3, 6, kernel_size=5) 
+        self.pool = nn.AvgPool2d(2, 2)                 
+        self.conv2 = nn.Conv2d(6, 16, kernel_size=5)
         self.fc1 = nn.Linear(16 * 5 * 5, 120)
         self.fc2 = nn.Linear(120, 84)
         self.fc3 = nn.Linear(84, 10)
@@ -76,7 +76,6 @@ def train_and_evaluate(model, trainloader, testloader, device):
         print(f"Epoch {epoch+1}, Loss: {running_loss / len(trainloader):.4f}")
     train_time = time.time() - start_time
 
-    # Evaluate
     model.eval()
     correct = 0
     total = 0
@@ -95,7 +94,6 @@ def train_and_evaluate(model, trainloader, testloader, device):
 
 # Run
 if __name__ == "__main__":
-    # Only use MPS if it's available AND running on ARM (Apple Silicon)
     if torch.backends.mps.is_available() and platform.processor() == "arm":
         device = torch.device("mps")
     elif torch.cuda.is_available():
