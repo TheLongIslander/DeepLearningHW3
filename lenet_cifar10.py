@@ -10,12 +10,12 @@ import os
 import sys
 from contextlib import contextmanager
 
-
 # Transform for CIFAR-10 (normalize RGB channels)
 transform = transforms.Compose([
     transforms.ToTensor(),
     transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
 ])
+
 @contextmanager
 def suppress_stdout():
     with open(os.devnull, 'w') as devnull:
@@ -25,11 +25,11 @@ def suppress_stdout():
             yield
         finally:
             sys.stdout = old_stdout
+
 # CIFAR-10 dataset loading
 with suppress_stdout():
     trainset = torchvision.datasets.CIFAR10(root='./data', train=True, download=True, transform=transform)
     testset = torchvision.datasets.CIFAR10(root='./data', train=False, download=True, transform=transform)
-
 
 trainloader = torch.utils.data.DataLoader(trainset, batch_size=64, shuffle=True, num_workers=2)
 testloader = torch.utils.data.DataLoader(testset, batch_size=1000, shuffle=False, num_workers=2)
@@ -46,11 +46,11 @@ class LeNet5(nn.Module):
         self.fc3 = nn.Linear(84, 10)
 
     def forward(self, x):
-        x = self.pool(F.tanh(self.conv1(x)))
-        x = self.pool(F.tanh(self.conv2(x)))
+        x = self.pool(F.relu(self.conv1(x)))
+        x = self.pool(F.relu(self.conv2(x)))
         x = x.view(-1, 16 * 5 * 5)
-        x = F.tanh(self.fc1(x))
-        x = F.tanh(self.fc2(x))
+        x = F.relu(self.fc1(x))
+        x = F.relu(self.fc2(x))
         return self.fc3(x)
 
 # Train and evaluate function
@@ -58,10 +58,11 @@ def train_and_evaluate(model, trainloader, testloader, device):
     model.to(device)
     criterion = nn.CrossEntropyLoss()
     optimizer = optim.Adam(model.parameters(), lr=0.001)
+    scheduler = optim.lr_scheduler.StepLR(optimizer, step_size=3, gamma=0.5)
 
     start_time = time.time()
     model.train()
-    for epoch in range(5):
+    for epoch in range(10):
         running_loss = 0.0
         for inputs, labels in trainloader:
             inputs, labels = inputs.to(device), labels.to(device)
@@ -71,6 +72,7 @@ def train_and_evaluate(model, trainloader, testloader, device):
             loss.backward()
             optimizer.step()
             running_loss += loss.item()
+        scheduler.step()
         print(f"Epoch {epoch+1}, Loss: {running_loss / len(trainloader):.4f}")
     train_time = time.time() - start_time
 
@@ -91,7 +93,6 @@ def train_and_evaluate(model, trainloader, testloader, device):
     print(f"Training Time: {train_time:.2f} seconds")
     return accuracy, train_time
 
-
 # Run
 if __name__ == "__main__":
     # Only use MPS if it's available AND running on ARM (Apple Silicon)
@@ -105,4 +106,3 @@ if __name__ == "__main__":
     print(f"Using device: {device}")
     model = LeNet5()
     train_and_evaluate(model, trainloader, testloader, device)
-
