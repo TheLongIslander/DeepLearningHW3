@@ -5,6 +5,7 @@ import torch.optim as optim
 import torchvision
 import torchvision.transforms as transforms
 import time
+import platform
 
 # Transform for CIFAR-10 (normalize RGB channels)
 transform = transforms.Compose([
@@ -78,6 +79,15 @@ def train_and_evaluate(model, trainloader, testloader, device):
 
 # Run
 if __name__ == "__main__":
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    # Only use MPS if it's available AND running on ARM (Apple Silicon)
+    if torch.backends.mps.is_available() and platform.processor() == "arm":
+        device = torch.device("mps")
+    elif torch.cuda.is_available():
+        device = torch.device("cuda")
+    else:
+        device = torch.device("cpu")
+
+    print(f"Using device: {device}")
     model = LeNet5()
     train_and_evaluate(model, trainloader, testloader, device)
+
